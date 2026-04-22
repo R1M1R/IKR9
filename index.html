@@ -640,15 +640,24 @@
             if(examActive) { e.preventDefault(); alert("Копирование отключено."); }
         });
 
+        // Флаг для предотвращения двойного срабатывания blur + visibilitychange
+        let cheatCooldown = false;
+        // Флаг для игнорирования blur при входе в полноэкранный режим
+        let fullscreenGrace = false;
+
         document.addEventListener("visibilitychange", () => {
             if (document.hidden && examActive) registerCheatAttempt();
         });
         
         window.addEventListener("blur", () => {
-            if (examActive) registerCheatAttempt();
+            if (examActive && !fullscreenGrace) registerCheatAttempt();
         });
 
         function registerCheatAttempt() {
+            if (cheatCooldown) return; // игнорируем дублирующее событие
+            cheatCooldown = true;
+            setTimeout(() => { cheatCooldown = false; }, 1500);
+
             cheatWarnings++;
             document.getElementById('cheatWarningBanner').classList.remove('hidden');
             document.getElementById('cheatModal').classList.remove('hide');
@@ -660,6 +669,8 @@
         }
 
         function enterFullscreen() {
+            fullscreenGrace = true;
+            setTimeout(() => { fullscreenGrace = false; }, 2000);
             const elem = document.documentElement;
             if (elem.requestFullscreen) { elem.requestFullscreen().catch(()=>{}); }
             else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen().catch(()=>{}); }
@@ -789,7 +800,7 @@
                 document.getElementById('btnNext').classList.remove('hide');
                 document.getElementById('btnFinish').classList.add('hide');
             }
-            document.getElementById('progressBar').style.width = `${((currentQuestion) / db.length) * 100}%`;
+            document.getElementById('progressBar').style.width = `${((currentQuestion + 1) / db.length) * 100}%`;
         }
 
         function selectOption(index) {
@@ -888,7 +899,8 @@
                 percent: percent + "%",
                 mark: gradeNum, // "mark" или "grade" - как настроено в GAS
                 cheats: cheatWarnings,
-                time: minutesSpent
+                time: minutesSpent,
+                timestamp: new Date().toLocaleString('ru-RU', {timeZone: 'Asia/Bishkek'})
             });
         }
 
@@ -901,8 +913,11 @@
             
             document.getElementById('sendingOverlay').classList.remove('hide');
 
+            // GAS делает redirect → используем no-cors.
+            // Ответ будет "opaque" (нельзя прочитать), поэтому всегда показываем успех.
             fetch(targetURL, {
                 method: 'POST',
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(data)
             })
