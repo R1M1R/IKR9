@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Итоговый экзамен по Информатике - 9 класс</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#1e40af',
+                        danger: '#ef4444',
+                        success: '#22c55e'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            background-color: #f3f4f6;
+        }
+        .hide { display: none !important; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Спиннер загрузки */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2563eb;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 font-sans" oncontextmenu="return false;">
+
+    <!-- Скрипт генерации PWA -->
+    <script>
+        (function initPWA() {
+            const manifest = {
+                "name": "Экзамен Информатика 9 класс",
+                "short_name": "Экзамен 9",
+                "start_url": ".",
+                "display": "standalone",
+                "background_color": "#f3f4f6",
+                "theme_color": "#2563eb",
+                "icons": [{
+                    "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzI1NjNlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjUwIiBmaWxsPSJ3aGl0ZSI+OTwvdGV4dD48L3N2Zz4=",
+                    "sizes": "192x192",
+                    "type": "image/svg+xml"
+                }]
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], {type: 'application/json'});
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            document.head.insertAdjacentHTML('beforeend', `<link rel="manifest" href="${manifestURL}">`);
+
+            const swCode = `
+                const CACHE_NAME = 'exam-cache-v3';
+                self.addEventListener('install', event => { event.waitUntil(self.skipWaiting()); });
+                self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
+                self.addEventListener('fetch', event => { event.respondWith(fetch(event.request).catch(() => new Response('Офлайн режим'))); });
+            `;
+            const swBlob = new Blob([swCode], {type: 'application/javascript'});
+            const swUrl = URL.createObjectURL(swBlob);
+            
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => { navigator.serviceWorker.register(swUrl).catch(()=>{}); });
+            }
+        })();
+    </script>
+
+    <!-- Экран 1: Регистрация и правила -->
+    <div id="screen-intro" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-8 fade-in border-t-4 border-primary">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-graduation-cap text-5xl text-primary mb-3"></i>
+                <h1 class="text-2xl font-bold text-gray-800">Итоговый экзамен по Информатике</h1>
+                <p class="text-gray-500 mt-2">9 класс • 20 вопросов • 45 минут</p>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 text-sm text-blue-800">
+                <h3 class="font-bold mb-2"><i class="fa-solid fa-shield-halved mr-1"></i> Защита:</h3>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Экзамен начнется в полноэкранном режиме.</li>
+                    <li>У каждого ученика генерируется уникальный вариант.</li>
+                    <li>Переключение вкладок или сворачивание браузера фиксируется.</li>
+                </ul>
+            </div>
+
+            <div class="space-y-4">
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Фамилия и Имя</label>
+                        <input type="text" id="studentName" placeholder="Иванов Иван" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-shadow" autocomplete="off">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Класс</label>
+                        <select id="studentClass" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white">
+                            <option value="">Выберите...</option>
+                            <option value="9А">9 «А»</option>
+                            <option value="9Б">9 «Б»</option>
+                            <option value="9В">9 «В»</option>
+                            <option value="9Г">9 «Г»</option>
+                            <option value="9Л">9 «Л»</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="startExam()" class="w-full bg-primary hover:bg-secondary text-white font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-blue-500/30">
+                    <i class="fa-solid fa-play"></i> Начать экзамен
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Экран 2: Тестирование -->
+    <div id="screen-quiz" class="min-h-screen flex flex-col hide bg-white">
+        <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <div class="flex items-center gap-4">
+                <div class="text-lg font-bold text-gray-800"><span id="displayStudentClass" class="bg-gray-200 px-2 py-1 rounded text-sm mr-2"></span><span id="displayStudentName"></span></div>
+                <div id="cheatWarningBanner" class="hidden bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Нарушение
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-center">
+                    <div class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Время</div>
+                    <div class="text-xl font-mono font-bold text-primary" id="timerDisplay">45:00</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="w-full bg-gray-100 h-2">
+            <div id="progressBar" class="bg-primary h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <main class="flex-grow max-w-4xl w-full mx-auto p-6 md:p-8 flex flex-col">
+            <div class="mb-4 flex justify-between items-end">
+                <span class="text-sm font-semibold text-primary uppercase tracking-wider bg-blue-50 px-3 py-1 rounded-full" id="questionTopic">Тема</span>
+                <span class="text-gray-500 font-medium" id="questionCounter">Вопрос 1 из 20</span>
+            </div>
+            
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8 leading-tight" id="questionText">Текст вопроса</h2>
+
+            <div id="optionsContainer" class="space-y-3 flex-grow">
+                <!-- Варианты ответов -->
+            </div>
+
+            <div class="mt-10 flex justify-between items-center border-t border-gray-100 pt-6">
+                <button onclick="prevQuestion()" id="btnPrev" class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Назад
+                </button>
+                <button onclick="nextQuestion()" id="btnNext" class="px-6 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-secondary shadow-md shadow-blue-500/20 transition-colors">
+                    Далее <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+                <button onclick="finishExamPrompt()" id="btnFinish" class="hide px-6 py-2.5 rounded-lg bg-success text-white font-medium hover:bg-green-700 shadow-md shadow-green-500/20 transition-colors">
+                    Завершить экзамен <i class="fa-solid fa-check ml-2"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Экран 3: Результаты и отправка -->
+    <div id="screen-results" class="min-h-screen bg-gray-50 py-10 px-4 hide">
+        <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden fade-in relative">
+            
+            <!-- Индикатор отправки -->
+            <div id="sendingOverlay" class="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center hide">
+                <div class="loader mb-4"></div>
+                <h3 class="text-xl font-bold text-gray-800">Отправка результатов учителю...</h3>
+                <p class="text-gray-500 mt-2">Пожалуйста, не закрывайте страницу</p>
+            </div>
+
+            <!-- Успешная отправка -->
+            <div id="successOverlay" class="absolute inset-0 bg-green-500 z-20 flex flex-col items-center justify-center text-white hide fade-in">
+                <i class="fa-solid fa-circle-check text-7xl mb-4"></i>
+                <h3 class="text-2xl font-bold">Результаты успешно отправлены!</h3>
+                <p class="mt-2 text-green-100">Можете закрыть эту вкладку.</p>
+                <button onclick="document.getElementById('successOverlay').classList.add('hide')" class="mt-6 px-6 py-2 bg-white text-green-600 rounded-lg font-bold hover:bg-gray-100">Посмотреть детали (Локально)</button>
+            </div>
+
+            <!-- Заголовок результатов -->
+            <div class="bg-primary p-8 text-center text-white relative">
+                <i class="fa-solid fa-award text-6xl mb-4 text-yellow-300 drop-shadow-md"></i>
+                <h1 class="text-3xl font-bold mb-2">Экзамен завершен</h1>
+                <p class="text-blue-100 text-lg" id="resultStudentInfo">Студент</p>
+            </div>
+
+            <div class="p-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <!-- Баллы -->
+                    <div class="bg-blue-50 rounded-xl p-6 text-center border border-blue-100">
+                        <div class="text-sm text-gray-500 uppercase font-semibold mb-1">Итоговый балл</div>
+                        <div class="text-5xl font-bold text-primary mb-2" id="scoreDisplay">0/20</div>
+                        <div class="text-sm font-medium px-3 py-1 rounded-full inline-block" id="gradeDisplay">Оценка</div>
+                    </div>
+                    <!-- Нарушения -->
+                    <div class="bg-gray-50 rounded-xl p-6 text-center border border-gray-200" id="cheatResultBox">
+                        <div class="text-sm text-gray-500 uppercase font-semibold mb-1">Попытки переключения</div>
+                        <div class="text-4xl font-bold text-gray-700 mb-2" id="cheatCountDisplay">0</div>
+                        <div class="text-xs text-gray-400">Срабатываний Anti-Cheat</div>
+                    </div>
+                </div>
+
+                <h3 class="font-bold text-lg text-gray-800 mb-4 border-b pb-2">Детализация по темам:</h3>
+                <div class="space-y-2 mb-8 max-h-60 overflow-y-auto pr-2" id="topicsBreakdown"></div>
+
+                <!-- Резервный код (на случай сбоя интернета) -->
+                <div class="bg-gray-800 text-white p-6 rounded-xl relative overflow-hidden">
+                    <h3 class="font-bold text-lg mb-2 relative z-10">Резервный код</h3>
+                    <p class="text-gray-400 text-sm mb-4 relative z-10">Если автоотправка не удалась из-за интернета, скопируйте этот код и отправьте учителю.</p>
+                    <div class="flex gap-2 relative z-10">
+                        <input type="text" id="verificationCode" readonly class="w-full bg-gray-900 border border-gray-700 rounded p-3 text-green-400 font-mono text-sm focus:outline-none">
+                        <button onclick="copyVerCode()" class="bg-gray-700 hover:bg-gray-600 px-4 rounded transition-colors" title="Скопировать">
+                            <i class="fa-solid fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cheatModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center hide fade-in p-4 text-center">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm p-6">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                <i class="fa-solid fa-eye"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Нарушение правил!</h3>
+            <p class="text-gray-600 mb-6 text-sm">Система зафиксировала попытку покинуть окно экзамена. Нарушение записано. Вернитесь к решению!</p>
+            <button onclick="closeCheatModal()" class="w-full bg-danger hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                Продолжить экзамен
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // ВАЖНО: URL вашего скрипта Google
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwfwaqlA3JiMLRWPF3tev0ig1DxfpDbNJoRfmHK3_jKEEru3iWp9dGEtkV8nMwGT_Wq4g/exec';
+
+        // Банк вопросов (20 тем, по 5 вопросов на тему для идеальной уникальности вариантов)
+        const topicPools = [
+            { topic: "Основы алгоритмизации", questions: [
+                { q: "Что такое алгоритм?", opts: ["Точная последовательность действий для решения задачи", "Аппаратная часть компьютера", "Язык программирования", "Антивирусная программа"], c: 0 },
+                { q: "Какое из этих свойств НЕ является свойством алгоритма?", opts: ["Дискретность", "Конечность", "Массовость", "Эмоциональность"], c: 3 },
+                { q: "Что означает свойство 'конечность' алгоритма?", opts: ["Алгоритм должен состоять из конечного числа шагов", "Алгоритм решает только одну задачу", "Алгоритм работает без ошибок", "Алгоритм занимает мало места в памяти"], c: 0 },
+                { q: "Какая алгоритмическая конструкция предполагает многократное выполнение одних и тех же действий?", opts: ["Ветвление", "Следование", "Цикл", "Рекурсия"], c: 2 },
+                { q: "Какой алгоритм называется линейным?", opts: ["Действия выполняются строго последовательно друг за другом", "В котором есть условие (если...то...иначе)", "В котором есть цикл", "Который написан в одну строку кода"], c: 0 }
+            ]},
+            { topic: "Блок-схемы", questions: [
+                { q: "Какая геометрическая фигура в блок-схеме обозначает проверку условия (ветвление)?", opts: ["Прямоугольник", "Овал", "Ромб", "Параллелограмм"], c: 2 },
+                { q: "Какая фигура используется для обозначения начала и конца алгоритма?", opts: ["Ромб", "Овал (эллипс)", "Шестиугольник", "Прямоугольник"], c: 1 },
+                { q: "Что обозначает параллелограмм в блок-схемах?", opts: ["Выполнение вычислений", "Проверка условия", "Ввод или вывод данных", "Конец программы"], c: 2 },
+                { q: "В какой фигуре блок-схемы записываются математические вычисления и присваивания?", opts: ["Ромб", "Прямоугольник", "Параллелограмм", "Овал"], c: 1 },
+                { q: "Линии со стрелками в блок-схеме показывают:", opts: ["Направление потока выполнения алгоритма", "Ошибки в логике", "Связи между базами данных", "Скорость выполнения программы"], c: 0 }
+            ]},
+            { topic: "Объектно-ориентированное программирование (ООП)", questions: [
+                { q: "Какое понятие НЕ является принципом ООП?", opts: ["Инкапсуляция", "Наследование", "Компиляция", "Полиморфизм"], c: 2 },
+                { q: "Как называется процесс создания нового класса на основе уже существующего?", opts: ["Полиморфизм", "Инкапсуляция", "Абстракция", "Наследование"], c: 3 },
+                { q: "Что такое 'объект' в ООП?", opts: ["Экземпляр класса", "Библиотека функций", "Тип данных", "Оператор цикла"], c: 0 },
+                { q: "Какая концепция ООП позволяет скрывать внутреннее устройство объекта и предоставлять доступ к нему только через специальные методы?", opts: ["Наследование", "Инкапсуляция", "Полиморфизм", "Абстракция"], c: 1 },
+                { q: "Метод в объектно-ориентированном программировании — это:", opts: ["Функция, принадлежащая классу или объекту", "Глобальная переменная", "Свойство класса", "Подключаемая библиотека"], c: 0 }
+            ]},
+            { topic: "Веб-разработка", questions: [
+                { q: "Что означает аббревиатура HTML?", opts: ["HyperText Markup Language", "HighText Machine Language", "Home Tool Markup Language", "HyperLinks Text Mode"], c: 0 },
+                { q: "Какой тег используется для вставки изображения на веб-страницу?", opts: ["<image>", "<img>", "<pic>", "<src>"], c: 1 },
+                { q: "Какой тег определяет гиперссылку?", opts: ["<link>", "<a>", "<href>", "<url>"], c: 1 },
+                { q: "Какой тег используется для создания маркированного (ненумерованного) списка?", opts: ["<ol>", "<li>", "<ul>", "<list>"], c: 2 },
+                { q: "Для чего нужен тег <head> в HTML-документе?", opts: ["Для отображения главного заголовка на странице", "Для хранения метаданных, подключения стилей и скриптов", "Для вставки шапки сайта (логотипа и меню)", "Для выделения текста жирным"], c: 1 }
+            ]},
+            { topic: "CSS", questions: [
+                { q: "Какое свойство CSS используется для изменения цвета текста?", opts: ["text-color", "color", "font-color", "text-style"], c: 1 },
+                { q: "Как добавить фоновый цвет для элемента в CSS?", opts: ["background-color", "color-bg", "bg-color", "background"], c: 0 },
+                { q: "Как с помощью CSS сделать текст жирным?", opts: ["font-weight: bold;", "text-style: bold;", "font: bold;", "style: bold;"], c: 0 },
+                { q: "Какое свойство CSS отвечает за внешний отступ элемента от других элементов?", opts: ["padding", "border", "margin", "spacing"], c: 2 },
+                { q: "Как в CSS выбрать элемент с идентификатором (id) \"header\"?", opts: [".header", "#header", "*header", "header"], c: 1 }
+            ]},
+            { topic: "Макет сайта", questions: [
+                { q: "Какая технология CSS специально разработана для создания гибких одномерных макетов (строк или столбцов)?", opts: ["Grid", "Float", "Flexbox", "Table"], c: 2 },
+                { q: "Какая CSS технология лучше всего подходит для создания двумерных сеток (строки И столбцы)?", opts: ["Flexbox", "CSS Grid", "Bootstrap", "Inline-block"], c: 1 },
+                { q: "Какое свойство позиционирования фиксирует элемент относительно окна браузера, даже при прокрутке?", opts: ["position: absolute;", "position: relative;", "position: fixed;", "position: static;"], c: 2 },
+                { q: "Что означает концепция \"Адаптивный веб-дизайн\" (Responsive Design)?", opts: ["Сайт меняет свой цвет в зависимости от времени суток", "Сайт корректно отображается и подстраивается под экраны разных устройств", "Сайт очень быстро загружается", "Сайт содержит только текстовую информацию"], c: 1 },
+                { q: "Какое правило CSS позволяет применять различные стили в зависимости от ширины экрана устройства (медиазапросы)?", opts: ["@media", "@screen", "@import", "@responsive"], c: 0 }
+            ]},
+            { topic: "Основы JavaScript", questions: [
+                { q: "Как правильно объявить переменную, значение которой нельзя будет изменить в дальнейшем?", opts: ["let x = 10;", "var x = 10;", "constant x = 10;", "const x = 10;"], c: 3 },
+                { q: "С помощью какого метода можно вывести сообщение в консоль разработчика браузера?", opts: ["print()", "console.log()", "echo()", "alert()"], c: 1 },
+                { q: "Каким ключевым словом объявляется функция в JavaScript?", opts: ["def", "func", "function", "method"], c: 2 },
+                { q: "Какой тип данных в JS используется для хранения логических значений (истина/ложь)?", opts: ["String", "Number", "Boolean", "Object"], c: 2 },
+                { q: "С помощью какого символа в JavaScript обозначается оператор строгого равенства (проверяет и значение, и тип данных)?", opts: ["=", "==", "===", "!=="], c: 2 }
+            ]},
+            { topic: "Функции и события", questions: [
+                { q: "Какое событие срабатывает при нажатии левой кнопки мыши на элемент?", opts: ["onhover", "ondblclick", "onclick", "onpress"], c: 2 },
+                { q: "Какое событие происходит, когда пользователь убирает курсор с элемента?", opts: ["onmouseover", "onmouseout", "onleave", "onchange"], c: 1 },
+                { q: "С помощью какого метода в JS добавляется прослушиватель событий к элементу DOM?", opts: ["attachEvent()", "listenTo()", "addEventListener()", "onEvent()"], c: 2 },
+                { q: "Какое ключевое слово используется внутри функции, чтобы вернуть результат её работы?", opts: ["break", "return", "output", "send"], c: 1 },
+                { q: "Что такое аргументы (параметры) функции?", opts: ["Значения, которые передаются в функцию при её вызове", "Ошибки, возникающие при выполнении", "Переменные, объявленные внутри функции", "Комментарии к коду функции"], c: 0 }
+            ]},
+            { topic: "Разработка мобильных приложений", questions: [
+                { q: "Как называется разработка одного приложения сразу для iOS и Android с единой базой кода?", opts: ["Нативная разработка", "Кроссплатформенная разработка", "Бэкенд разработка", "Системная разработка"], c: 1 },
+                { q: "Какой язык программирования является официальным (и самым современным) для нативной разработки под Android?", opts: ["Swift", "Kotlin", "Objective-C", "Ruby"], c: 1 },
+                { q: "Какой язык программирования в основном используется для создания нативных приложений для Apple iOS?", opts: ["Java", "Swift", "C#", "Python"], c: 1 },
+                { q: "Как называется процесс публикации готового приложения в App Store или Google Play?", opts: ["Компиляция", "Релиз (Деплой)", "Дебаггинг", "Рендеринг"], c: 1 },
+                { q: "Что такое \"Сенсорное событие\" (Touch event) в мобильной разработке?", opts: ["Нажатие клавиши на клавиатуре", "Реакция интерфейса на касания, свайпы и жесты по экрану", "Вибрация телефона при уведомлении", "Звуковой сигнал смартфона"], c: 1 }
+            ]},
+            { topic: "Платформы для разработки", questions: [
+                { q: "Какой инструмент является популярным игровым движком для 2D и 3D игр?", opts: ["Adobe Photoshop", "Unity", "Visual Studio Code", "MySQL"], c: 1 },
+                { q: "Что такое GitHub?", opts: ["Язык программирования", "Платформа для хостинга IT-проектов и совместной разработки", "Текстовый редактор", "База данных"], c: 1 },
+                { q: "Какая программа является популярной средой разработки (IDE) от Microsoft?", opts: ["Eclipse", "Visual Studio", "Notepad++", "Figma"], c: 1 },
+                { q: "Что такое Git?", opts: ["Облачный сервер для игр", "Распределенная система управления версиями кода", "Система управления базами данных", "Язык разметки"], c: 1 },
+                { q: "Какая из этих программ НЕ является средой разработки (IDE) или редактором кода?", opts: ["Visual Studio Code", "IntelliJ IDEA", "Adobe Premiere Pro", "Sublime Text"], c: 2 }
+            ]},
+            { topic: "Интерфейс приложения", questions: [
+                { q: "Что означает термин UI (User Interface)?", opts: ["Пользовательский опыт", "Пользовательский интерфейс", "База данных", "Уникальный идентификатор"], c: 1 },
+                { q: "Что такое UX (User Experience)?", opts: ["Внешний вид кнопок", "Пользовательский опыт и удобство использования", "Процесс написания кода", "Тестирование сервера"], c: 1 },
+                { q: "Какой инструмент чаще всего используется для создания прототипов и дизайна UI?", opts: ["Word", "Figma", "Excel", "Notepad"], c: 1 },
+                { q: "Какое правило является важнейшим в UX-дизайне?", opts: ["Использовать как можно больше ярких цветов", "Интерфейс должен быть интуитивно понятным и логичным для пользователя", "Все кнопки должны быть строго одного размера", "Текст должен быть мелким для экономии места"], c: 1 },
+                { q: "Что такое \"Доступность\" (Accessibility/a11y) в контексте интерфейсов?", opts: ["Бесплатность приложения", "Адаптация интерфейса для людей с ограниченными возможностями (слабовидящих, слабослышащих)", "Скорость скачивания приложения", "Доступ к исходному коду (Open Source)"], c: 1 }
+            ]},
+            { topic: "Создание игры", questions: [
+                { q: "Как называется основной цикл в коде игры, который непрерывно обновляет логику и перерисовывает экран?", opts: ["Цикл for", "Game Loop (игровой цикл)", "Event Listener", "Render Function"], c: 1 },
+                { q: "Что такое 'спрайт' (sprite) в контексте создания 2D-игр?", opts: ["Звуковой эффект", "Двумерное изображение объекта (персонажа, фона)", "Ошибка в коде", "Переменная для счета"], c: 1 },
+                { q: "Что такое коллайдер (Collider) в игровых движках?", opts: ["Система освещения", "Компонент для обработки физических столкновений", "Скрипт перемещения", "Главное меню игры"], c: 1 },
+                { q: "Что означает аббревиатура FPS в видеоиграх?", opts: ["First Player System", "Frames Per Second (кадры в секунду)", "Fast Processing Speed", "Free Play Server"], c: 1 },
+                { q: "Для чего в 2D играх используются хитбоксы (hitboxes)?", opts: ["Для хранения звуков ударов", "Для определения невидимых границ объекта и регистрации попаданий/столкновений", "Для подсчета очков игрока", "Для сохранения игры в облако"], c: 1 }
+            ]},
+            { topic: "Цифровая грамотность, ИКТ и безопасность", questions: [
+                { q: "Что такое фишинг?", opts: ["Оптимизация кода", "Вид мошенничества (социальная инженерия) для выманивания паролей и данных", "Установка антивируса", "Защита сети"], c: 1 },
+                { q: "Какое расширение файла обычно указывает на исполняемую программу (потенциально опасную при скачивании из неизвестных источников)?", opts: [".txt", ".jpg", ".exe", ".mp3"], c: 2 },
+                { q: "Для чего используется режим 'Инкогнито' в браузере?", opts: ["Для скрытия своего IP-адреса от провайдера", "Браузер не сохраняет историю посещений, пароли и куки на локальном ПК", "Для полной анонимности в сети интернет", "Для ускорения загрузки сайтов"], c: 1 },
+                { q: "Что такое резервное копирование (BackUp)?", opts: ["Процесс удаления вирусов", "Создание копии важных данных на случай их потери или сбоя системы", "Ускорение работы компьютера", "Процесс архивации данных для освобождения места"], c: 1 },
+                { q: "Что из перечисленного относится к вредоносным программам (Malware)?", opts: ["Интернет-браузер", "Троянская программа (Троян)", "Драйвер видеокарты", "Среда разработки IDE"], c: 1 }
+            ]},
+            { topic: "Цифровая безопасность", questions: [
+                { q: "Какой из паролей считается наиболее надежным?", opts: ["12345678", "qwerty", "password123", "aB7!kL9#mP"], c: 3 },
+                { q: "Что такое двухфакторная аутентификация (2FA)?", opts: ["Ввод пароля дважды", "Использование пароля + дополнительного подтверждения (например, кода из SMS)", "Два антивируса на одном ПК", "Доступ к аккаунту с двух разных устройств"], c: 1 },
+                { q: "Что означает протокол HTTPS (буква 'S' на конце)?", opts: ["Сайт загружается быстрее", "Данные между пользователем и сервером передаются в зашифрованном виде (Secure)", "Сайт содержит много картинок", "Сайт работает без интернета"], c: 1 },
+                { q: "Для чего чаще всего используют VPN-сервисы?", opts: ["Для ускорения интернета в 10 раз", "Для шифрования трафика и создания безопасного туннеля (часто со сменой IP)", "Для автоматического блокирования рекламы", "Для бесплатного скачивания файлов"], c: 1 },
+                { q: "Какова основная функция Брандмауэра (Файрвола)?", opts: ["Охлаждение процессора", "Контроль и фильтрация проходящего сетевого трафика для защиты от атак", "Восстановление удаленных файлов", "Поиск нужной информации в интернете"], c: 1 }
+            ]},
+            { topic: "Киберэтика", questions: [
+                { q: "Как называется преднамеренная травля или оскорбления человека в интернете?", opts: ["Стриминг", "Скамминг", "Кибербуллинг", "Спам"], c: 2 },
+                { q: "Что такое 'копирайт' (авторское право) в интернете?", opts: ["Право бесплатно скачивать любые фильмы", "Защита интеллектуальной собственности и прав авторов контента", "Обязанность копировать текст", "Программа для проверки уникальности"], c: 1 },
+                { q: "Что считается хорошим тоном (нетикетом) при общении в рабочих чатах?", opts: ["Писать только ЗАГЛАВНЫМИ БУКВАМИ", "Разбивать одно предложение на 10 коротких сообщений", "Писать емко, четко формулировать мысль в одном сообщении", "Игнорировать вопросы коллег"], c: 2 },
+                { q: "Что такое 'Цифровой след' (Digital Footprint)?", opts: ["Программа для слежки за пользователями", "Совокупность данных о действиях пользователя в интернете, которые часто остаются навсегда", "Вирус, удаляющий файлы с диска", "Ошибка в исходном коде программы"], c: 1 },
+                { q: "Является ли публикация чужой фотографии или арта в соцсети без разрешения автора нарушением?", opts: ["Нет, интернет общий", "Да, это прямое нарушение авторских прав", "Зависит от количества подписчиков", "Нет, если фотография очень красивая"], c: 1 }
+            ]},
+            { topic: "Основы ИИ", questions: [
+                { q: "Что понимают под Искусственным Интеллектом (ИИ)?", opts: ["Монитор высокого разрешения", "Способность компьютерных систем имитировать когнитивные функции человека", "Сеть соединенных серверов", "Процессор ПК"], c: 1 },
+                { q: "Какой тест был предложен в 1950 году для оценки способности машины мыслить как человек?", opts: ["Тест Тьюринга", "Тест Роршаха", "IQ тест", "Тест Эйнштейна"], c: 0 },
+                { q: "Что из перечисленного является примером слабого (узкого) ИИ?", opts: ["Скайнет из 'Терминатора'", "Голосовой помощник (Алиса / Siri)", "Робот, обладающий настоящим сознанием", "Компьютер из 'Матрицы'"], c: 1 },
+                { q: "Что такое \"Сильный ИИ\" (Strong AI) в теории?", opts: ["ИИ, который умеет играть в шахматы лучше чемпиона", "Гипотетический ИИ, способный осознавать себя и мыслить на уровне человека во всех сферах", "Самый дорогой суперкомпьютер", "Нейросеть для генерации реалистичных картинок"], c: 1 },
+                { q: "В какой области ИИ применяются алгоритмы, лежащие в основе ChatGPT или ЯндексGPT?", opts: ["Компьютерное зрение", "Обработка естественного языка (NLP)", "Промышленная робототехника", "Криптография"], c: 1 }
+            ]},
+            { topic: "Машинное обучение", questions: [
+                { q: "В чем фундаментальная суть машинного обучения?", opts: ["Программист вручную пишет все правила if-else", "Модель самостоятельно обучается находить закономерности на основе предоставленных данных", "Компьютер случайным образом подбирает ответы до победного", "Обучение школьников работе за ПК"], c: 1 },
+                { q: "Как называется вид машинного обучения, при котором алгоритму даются размеченные данные (примеры с правильными ответами)?", opts: ["Обучение с подкреплением", "Обучение без учителя", "Обучение с учителем (Supervised learning)", "Глубокое обучение"], c: 2 },
+                { q: "Для чего используется 'обучающая выборка' (dataset) в машинном обучении?", opts: ["Для тренировки и настройки алгоритма", "Для удаления вирусов", "Для создания красивого интерфейса", "Для ускорения работы процессора"], c: 0 },
+                { q: "Что означает термин \"Переобучение\" (Overfitting) модели?", opts: ["Модель слишком долго работала и зависла", "Модель идеально 'зазубрила' тренировочные данные, но плохо справляется с новыми, незнакомыми", "Модель стала умнее своего создателя", "Тренировочных данных было слишком мало"], c: 1 },
+                { q: "Какая из этих задач относится к классу 'классификации' в машинном обучении?", opts: ["Предсказание точной стоимости биткоина на завтра", "Определение, является ли письмо спамом или важным", "Группировка покупателей супермаркета по их интересам", "Генерация нового стихотворения"], c: 1 }
+            ]},
+            { topic: "Нейронные сети", questions: [
+                { q: "Из каких базовых логических элементов состоят искусственные нейронные сети?", opts: ["Из транзисторов и конденсаторов", "Из искусственных нейронов (перцептронов)", "Из макросов Excel", "Из HTML-тегов"], c: 1 },
+                { q: "Какой биологический объект вдохновил ученых на создание искусственных нейронных сетей?", opts: ["ДНК", "Головной мозг человека (связи биологических нейронов)", "Сердечно-сосудистая система", "Строение сетчатки глаза"], c: 1 },
+                { q: "Какая архитектура нейросетей исторически лучше всего показала себя для распознавания изображений?", opts: ["Сверточные нейронные сети (CNN)", "Рекуррентные нейронные сети (RNN)", "Деревья решений", "Линейная регрессия"], c: 0 },
+                { q: "Как называется слой искусственных нейронов, который находится между входным и выходным слоями?", opts: ["Промежуточный слой", "Скрытый слой (Hidden layer)", "Основной слой", "Невидимый слой"], c: 1 },
+                { q: "Что физически происходит в процессе 'обучения' нейронной сети?", opts: ["Сеть просто запоминает все картинки в базу данных", "Математически корректируются веса (значимость) связей между нейронами для минимизации ошибки", "В сеть скачиваются словари русского языка", "Процессор начинает работать на более высокой частоте"], c: 1 }
+            ]},
+            { topic: "Базы данных", questions: [
+                { q: "Что такое СУБД?", opts: ["Система управления базами данных", "Сервер уникальных бинарных данных", "Системное устройство быстрого доступа", "Сетевой узел базы данных"], c: 0 },
+                { q: "Какая модель базы данных организует данные в виде таблиц, которые могут быть связаны между собой?", opts: ["Иерархическая", "Сетевая", "Реляционная", "Объектно-ориентированная"], c: 2 },
+                { q: "Что такое 'Первичный ключ' (Primary Key) в таблице БД?", opts: ["Секретный пароль от базы данных", "Поле, которое уникально идентифицирует каждую запись (строку) в таблице", "Первая колонка в любой таблице", "Ключ для шифрования данных"], c: 1 },
+                { q: "Как в реляционных базах данных принято называть отдельный столбец таблицы?", opts: ["Запись", "Поле (Field / Атрибут)", "Ключ", "Индекс"], c: 1 },
+                { q: "Что такое SQL-инъекция?", opts: ["Легальный способ ускорения работы базы данных", "Уязвимость, при которой хакер внедряет вредоносный SQL-код в запрос для взлома БД", "Процесс планового обновления СУБД", "Создание резервной копии таблиц"], c: 1 }
+            ]},
+            { topic: "SQL", questions: [
+                { q: "Какая команда языка SQL используется для извлечения (чтения) данных из таблицы?", opts: ["INSERT", "UPDATE", "DELETE", "SELECT"], c: 3 },
+                { q: "Какая команда SQL используется для добавления абсолютно новой записи в таблицу?", opts: ["ADD", "INSERT", "CREATE", "UPDATE"], c: 1 },
+                { q: "С помощью какого оператора в SQL можно отфильтровать результаты запроса по заданному условию?", opts: ["FILTER", "ORDER BY", "WHERE", "GROUP BY"], c: 2 },
+                { q: "Какая агрегатная функция SQL используется для подсчета количества строк, соответствующих условию?", opts: ["SUM()", "MAX()", "COUNT()", "TOTAL()"], c: 2 },
+                { q: "Что делает оператор ORDER BY в SQL-запросе?", opts: ["Группирует одинаковые данные вместе", "Сортирует результаты запроса по указанному столбцу (по возрастанию или убыванию)", "Удаляет дублирующиеся строки", "Создает новую таблицу из результатов"], c: 1 }
+            ]}
+        ];
+
+        // Состояние приложения
+        let db = []; // Сюда сгенерируется уникальный вариант
+        let currentQuestion = 0;
+        let userAnswers = [];
+        let studentName = "";
+        let studentClass = "";
+        let cheatWarnings = 0;
+        let examActive = false;
+        let timeRemaining = 45 * 60;
+        let timerInterval;
+
+        const screenIntro = document.getElementById('screen-intro');
+        const screenQuiz = document.getElementById('screen-quiz');
+        const screenResults = document.getElementById('screen-results');
+        
+        // Anti-Cheat события
+        document.addEventListener('copy', (e) => {
+            if(examActive) { e.preventDefault(); alert("Копирование отключено."); }
+        });
+
+        document.addEventListener("visibilitychange", () => {
+            if (document.hidden && examActive) registerCheatAttempt();
+        });
+        
+        window.addEventListener("blur", () => {
+            if (examActive) registerCheatAttempt();
+        });
+
+        function registerCheatAttempt() {
+            cheatWarnings++;
+            document.getElementById('cheatWarningBanner').classList.remove('hidden');
+            document.getElementById('cheatModal').classList.remove('hide');
+        }
+
+        function closeCheatModal() {
+            document.getElementById('cheatModal').classList.add('hide');
+            enterFullscreen();
+        }
+
+        function enterFullscreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) { elem.requestFullscreen().catch(()=>{}); }
+            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen().catch(()=>{}); }
+        }
+
+        // Подготовка уникального билета
+        function generateUniqueVariant() {
+            db = [];
+            // Берем по 1 случайному вопросу из каждой темы
+            topicPools.forEach(topicData => {
+                const randomQIndex = Math.floor(Math.random() * topicData.questions.length);
+                const selectedQ = topicData.questions[randomQIndex];
+                db.push({
+                    topic: topicData.topic,
+                    question: selectedQ.q,
+                    options: selectedQ.opts,
+                    correct: selectedQ.c
+                });
+            });
+            userAnswers = new Array(db.length).fill(null);
+        }
+
+        function startExam() {
+            const nameInput = document.getElementById('studentName').value.trim();
+            const classInput = document.getElementById('studentClass').value;
+            
+            if (!nameInput) { alert("Введите Фамилию и Имя."); return; }
+            if (!classInput) { alert("Выберите свой класс."); return; }
+            
+            studentName = nameInput;
+            studentClass = classInput;
+            document.getElementById('displayStudentName').innerText = studentName;
+            document.getElementById('displayStudentClass').innerText = studentClass;
+            
+            generateUniqueVariant();
+            enterFullscreen();
+
+            screenIntro.classList.add('hide');
+            screenQuiz.classList.remove('hide');
+            examActive = true;
+            
+            startTimer();
+            renderQuestion();
+        }
+
+        function startTimer() {
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                let m = Math.floor(timeRemaining / 60);
+                let s = timeRemaining % 60;
+                timerDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                
+                if(timeRemaining <= 300) timerDisplay.classList.add('text-danger', 'animate-pulse');
+                if (timeRemaining <= 0) { clearInterval(timerInterval); finishExam(); }
+            }, 1000);
+        }
+
+        function renderQuestion() {
+            const q = db[currentQuestion];
+            document.getElementById('questionTopic').innerText = q.topic;
+            document.getElementById('questionCounter').innerText = `Вопрос ${currentQuestion + 1} из ${db.length}`;
+            document.getElementById('questionText').innerText = q.question;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+
+            q.options.forEach((opt, index) => {
+                const isSelected = userAnswers[currentQuestion] === index;
+                const div = document.createElement('div');
+                div.className = `p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center gap-3 ${isSelected ? 'border-primary bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`;
+                div.onclick = () => selectOption(index);
+                
+                const radioCircle = document.createElement('div');
+                radioCircle.className = `w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-primary' : 'border-gray-400'}`;
+                if(isSelected) radioCircle.innerHTML = '<div class="w-2.5 h-2.5 bg-primary rounded-full"></div>';
+
+                const textSpan = document.createElement('span');
+                textSpan.className = `text-lg ${isSelected ? 'font-medium text-primary' : 'text-gray-700'}`;
+                textSpan.innerText = opt;
+
+                div.appendChild(radioCircle); div.appendChild(textSpan);
+                optionsContainer.appendChild(div);
+            });
+
+            document.getElementById('btnPrev').disabled = currentQuestion === 0;
+            if (currentQuestion === db.length - 1) {
+                document.getElementById('btnNext').classList.add('hide');
+                document.getElementById('btnFinish').classList.remove('hide');
+            } else {
+                document.getElementById('btnNext').classList.remove('hide');
+                document.getElementById('btnFinish').classList.add('hide');
+            }
+            document.getElementById('progressBar').style.width = `${((currentQuestion) / db.length) * 100}%`;
+        }
+
+        function selectOption(index) {
+            userAnswers[currentQuestion] = index;
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < db.length - 1) { currentQuestion++; renderQuestion(); }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) { currentQuestion--; renderQuestion(); }
+        }
+
+        function finishExamPrompt() {
+            const unanswered = userAnswers.filter(a => a === null).length;
+            if (unanswered > 0) {
+                if(!confirm(`У вас осталось ${unanswered} неотвеченных вопросов! Завершить?`)) return;
+            } else {
+                if(!confirm("Вы уверены, что хотите завершить экзамен?")) return;
+            }
+            finishExam();
+        }
+
+        function finishExam() {
+            examActive = false;
+            clearInterval(timerInterval);
+            if (document.exitFullscreen) { document.exitFullscreen().catch(()=>{}); }
+
+            screenQuiz.classList.add('hide');
+            screenResults.classList.remove('hide');
+
+            calculateResults();
+        }
+
+        function calculateResults() {
+            let score = 0;
+            const topicsContainer = document.getElementById('topicsBreakdown');
+            topicsContainer.innerHTML = '';
+            document.getElementById('resultStudentInfo').innerText = `${studentClass} | ${studentName}`;
+
+            db.forEach((q, index) => {
+                const userAnswer = userAnswers[index];
+                const isCorrect = userAnswer === q.correct;
+                if (isCorrect) score++;
+
+                const row = document.createElement('div');
+                row.className = 'flex justify-between items-center py-2 border-b border-gray-100 last:border-0';
+                
+                const topicTitle = document.createElement('span');
+                topicTitle.className = 'text-gray-700 text-sm';
+                topicTitle.innerText = `${index + 1}. ${q.topic}`;
+
+                const statusBadge = document.createElement('span');
+                if (isCorrect) statusBadge.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+                else if (userAnswer === null) statusBadge.innerHTML = '<i class="fa-solid fa-minus text-gray-400" title="Нет ответа"></i>';
+                else statusBadge.innerHTML = '<i class="fa-solid fa-xmark text-danger"></i>';
+
+                row.appendChild(topicTitle); row.appendChild(statusBadge);
+                topicsContainer.appendChild(row);
+            });
+
+            document.getElementById('scoreDisplay').innerText = `${score}/${db.length}`;
+            let grade = "2 (Неуд)";
+            let gradeNum = 2;
+            let gradeClass = "bg-red-100 text-red-800";
+            let percent = Math.round((score / db.length) * 100);
+            
+            if (percent >= 85) { grade = "5 (Отл)"; gradeNum = 5; gradeClass = "bg-green-100 text-green-800"; }
+            else if (percent >= 70) { grade = "4 (Хор)"; gradeNum = 4; gradeClass = "bg-blue-100 text-blue-800"; }
+            else if (percent >= 50) { grade = "3 (Удовл)"; gradeNum = 3; gradeClass = "bg-yellow-100 text-yellow-800"; }
+
+            const gd = document.getElementById('gradeDisplay');
+            gd.innerText = grade;
+            gd.className = `text-sm font-medium px-3 py-1 rounded-full inline-block ${gradeClass}`;
+
+            document.getElementById('cheatCountDisplay').innerText = cheatWarnings;
+            if(cheatWarnings > 0) {
+                document.getElementById('cheatResultBox').classList.add('bg-red-50', 'border-red-200');
+                document.getElementById('cheatCountDisplay').classList.add('text-danger');
+            }
+
+            const timeSpent = (45 * 60) - timeRemaining;
+            const minutesSpent = Math.floor(timeSpent / 60) + " мин " + (timeSpent % 60) + " сек";
+
+            // Резервный код
+            const secretData = `${encodeURIComponent(studentName)}|${studentClass}|${score}|${gradeNum}|${cheatWarnings}`;
+            document.getElementById('verificationCode').value = btoa(secretData);
+
+            // Отправка в Google Scripts
+            sendToGoogleSheets({
+                name: studentName,
+                studentClass: studentClass,
+                score: score,
+                percent: percent + "%",
+                grade: gradeNum,
+                cheats: cheatWarnings,
+                time: minutesSpent
+            });
+        }
+
+        function sendToGoogleSheets(data) {
+            if(!GOOGLE_SCRIPT_URL) return;
+            
+            document.getElementById('sendingOverlay').classList.remove('hide');
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', // Важно для обхода CORS ограничений
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(() => {
+                document.getElementById('sendingOverlay').classList.add('hide');
+                document.getElementById('successOverlay').classList.remove('hide');
+            })
+            .catch((error) => {
+                console.error('Ошибка отправки:', error);
+                document.getElementById('sendingOverlay').classList.add('hide');
+                alert("Ошибка сети при отправке. Пожалуйста, скопируйте резервный код и передайте учителю.");
+            });
+        }
+
+        function copyVerCode() {
+            const input = document.getElementById('verificationCode');
+            input.select();
+            input.setSelectionRange(0, 99999); 
+            document.execCommand("copy");
+            const btn = event.currentTarget;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+        }
+    </script>
+</body>
+</html>
