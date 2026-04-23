@@ -640,9 +640,9 @@
             if(examActive) { e.preventDefault(); alert("Копирование отключено."); }
         });
 
-        // Флаг для предотвращения двойного срабатывания blur + visibilitychange
+        // Кулдаун — предотвращает двойное срабатывание blur + visibilitychange
         let cheatCooldown = false;
-        // Флаг для игнорирования blur при входе в полноэкранный режим
+        // Grace-период — игнорирует blur при переходе в полноэкранный режим
         let fullscreenGrace = false;
 
         document.addEventListener("visibilitychange", () => {
@@ -654,10 +654,9 @@
         });
 
         function registerCheatAttempt() {
-            if (cheatCooldown) return; // игнорируем дублирующее событие
+            if (cheatCooldown) return;
             cheatCooldown = true;
             setTimeout(() => { cheatCooldown = false; }, 1500);
-
             cheatWarnings++;
             document.getElementById('cheatWarningBanner').classList.remove('hidden');
             document.getElementById('cheatModal').classList.remove('hide');
@@ -897,7 +896,7 @@
                 grade: selectedGrade,
                 score: score,
                 percent: percent + "%",
-                mark: gradeNum, // "mark" или "grade" - как настроено в GAS
+                mark: gradeNum,
                 cheats: cheatWarnings,
                 time: minutesSpent,
                 timestamp: new Date().toLocaleString('ru-RU', {timeZone: 'Asia/Bishkek'})
@@ -913,8 +912,9 @@
             
             document.getElementById('sendingOverlay').classList.remove('hide');
 
-            // GAS делает redirect → используем no-cors.
-            // Ответ будет "opaque" (нельзя прочитать), поэтому всегда показываем успех.
+            // mode: 'no-cors' обязателен для Google Apps Script —
+            // GAS делает редирект, который браузер иначе блокирует (CORS-ошибка).
+            // Ответ будет "opaque", но данные гарантированно уходят на сервер.
             fetch(targetURL, {
                 method: 'POST',
                 mode: 'no-cors',
