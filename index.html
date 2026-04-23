@@ -24,13 +24,18 @@
         }
     </script>
     <style>
+        /* Высота на мобильных: 100dvh учитывает адресную строку браузера */
+        :root { --vh: 1vh; }
         body {
             user-select: none;
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             background-color: #f3f4f6;
+            /* Убираем голубой highlight при тапе на iOS/Android */
+            -webkit-tap-highlight-color: transparent;
         }
+        .min-h-screen-real { min-height: 100vh; min-height: 100dvh; }
         .hide { display: none !important; }
         .fade-in { animation: fadeIn 0.3s ease-in-out; }
         @keyframes fadeIn {
@@ -41,16 +46,27 @@
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #2563eb;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
+            width: 30px; height: 30px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Кнопки: увеличенная зона тапа, нет задержки 300ms */
+        button, .option-card {
+            touch-action: manipulation;
+            cursor: pointer;
+        }
+        /* Карточка ответа — минимальная высота 56px для удобного тапа */
+        .option-card { min-height: 56px; }
+
+        /* iOS banner */
+        #ios-banner {
+            background: linear-gradient(135deg, #1e40af, #2563eb);
+        }
     </style>
 </head>
 <body class="min-h-screen text-slate-800 font-sans" oncontextmenu="return false;">
@@ -89,8 +105,16 @@
         })();
     </script>
 
+    <!-- iOS banner: появляется только на iPhone/iPad -->
+    <div id="ios-banner" class="hide fixed top-0 left-0 right-0 z-50 text-white text-center text-sm py-3 px-4 shadow-lg">
+        <i class="fa-solid fa-mobile-screen-button mr-1"></i>
+        Для защиты от списывания: нажмите
+        <i class="fa-solid fa-share-from-square mx-1"></i> → <strong>«На экран «Домой»»</strong> и откройте оттуда.
+        <button onclick="document.getElementById('ios-banner').classList.add('hide')" class="ml-3 underline opacity-80">Понятно</button>
+    </div>
+
     <!-- Экран 1: Регистрация и правила -->
-    <div id="screen-intro" class="min-h-screen flex items-center justify-center p-4">
+    <div id="screen-intro" class="min-h-screen-real flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-8 fade-in border-t-4 border-primary">
             <div class="text-center mb-6">
                 <i class="fa-solid fa-graduation-cap text-5xl text-primary mb-3"></i>
@@ -144,52 +168,58 @@
     </div>
 
     <!-- Экран 2: Тестирование -->
-    <div id="screen-quiz" class="min-h-screen flex flex-col hide bg-white">
-        <header class="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
-            <div class="flex items-center gap-4">
-                <div class="text-lg font-bold text-gray-800"><span id="displayStudentClass" class="bg-gray-200 px-2 py-1 rounded text-sm mr-2"></span><span id="displayStudentName"></span></div>
-                <div id="cheatWarningBanner" class="hidden bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold animate-pulse">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Нарушение
+    <div id="screen-quiz" class="min-h-screen-real flex flex-col hide bg-white">
+        <!-- Шапка: компактная на мобильных -->
+        <header class="bg-white border-b border-gray-200 px-3 py-2 md:px-6 md:py-4 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <div class="flex flex-col min-w-0 mr-2">
+                <div class="flex items-center gap-1 flex-wrap">
+                    <span id="displayStudentClass" class="bg-gray-200 px-2 py-0.5 rounded text-xs font-bold shrink-0"></span>
+                    <span id="displayStudentName" class="text-sm font-bold text-gray-800 truncate max-w-[140px] md:max-w-none"></span>
+                </div>
+                <div id="cheatWarningBanner" class="hidden bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-bold animate-pulse mt-0.5 w-fit">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Нарушение зафиксировано
                 </div>
             </div>
-            <div class="flex items-center gap-6">
-                <div class="text-center">
-                    <div class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Время</div>
-                    <div class="text-xl font-mono font-bold text-primary" id="timerDisplay">45:00</div>
-                </div>
+            <div class="text-center shrink-0">
+                <div class="text-xs text-gray-500 uppercase font-semibold tracking-wider hidden md:block">Время</div>
+                <div class="text-2xl font-mono font-bold text-primary" id="timerDisplay">45:00</div>
             </div>
         </header>
 
-        <div class="w-full bg-gray-100 h-2">
-            <div id="progressBar" class="bg-primary h-2 transition-all duration-300" style="width: 0%"></div>
+        <div class="w-full bg-gray-100 h-1.5">
+            <div id="progressBar" class="bg-primary h-1.5 transition-all duration-300" style="width: 0%"></div>
         </div>
 
-        <main class="flex-grow max-w-4xl w-full mx-auto p-6 md:p-8 flex flex-col">
-            <div class="mb-4 flex justify-between items-end">
-                <span class="text-sm font-semibold text-primary uppercase tracking-wider bg-blue-50 px-3 py-1 rounded-full" id="questionTopic">Тема</span>
-                <span class="text-gray-500 font-medium" id="questionCounter">Вопрос 1 из 20</span>
+        <main class="flex-grow max-w-4xl w-full mx-auto p-4 md:p-8 flex flex-col">
+            <div class="mb-3 flex justify-between items-center">
+                <span class="text-xs font-semibold text-primary uppercase tracking-wider bg-blue-50 px-2 py-1 rounded-full truncate max-w-[65%]" id="questionTopic">Тема</span>
+                <span class="text-gray-500 text-sm font-medium shrink-0" id="questionCounter">Вопрос 1 из 20</span>
             </div>
-            
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-8 leading-tight" id="questionText">Текст вопроса</h2>
 
-            <div id="optionsContainer" class="space-y-3 flex-grow"></div>
+            <h2 class="text-xl md:text-3xl font-bold text-gray-800 mb-5 leading-snug" id="questionText">Текст вопроса</h2>
 
-            <div class="mt-10 flex justify-between items-center border-t border-gray-100 pt-6">
-                <button onclick="prevQuestion()" id="btnPrev" class="px-6 py-2.5 rounded-lg border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="fa-solid fa-arrow-left mr-2"></i> Назад
+            <div id="optionsContainer" class="space-y-2.5 flex-grow"></div>
+
+            <!-- Кнопки навигации: на мобильных — во всю ширину -->
+            <div class="mt-6 grid grid-cols-2 gap-3 border-t border-gray-100 pt-4">
+                <button onclick="prevQuestion()" id="btnPrev"
+                    class="py-3.5 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed text-base">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Назад
                 </button>
-                <button onclick="nextQuestion()" id="btnNext" class="px-6 py-2.5 rounded-lg bg-primary text-white font-medium hover:bg-secondary shadow-md shadow-blue-500/20 transition-colors">
-                    Далее <i class="fa-solid fa-arrow-right ml-2"></i>
+                <button onclick="nextQuestion()" id="btnNext"
+                    class="py-3.5 rounded-xl bg-primary text-white font-semibold hover:bg-secondary active:bg-blue-800 shadow-md shadow-blue-500/20 transition-colors text-base">
+                    Далее <i class="fa-solid fa-arrow-right ml-1"></i>
                 </button>
-                <button onclick="finishExamPrompt()" id="btnFinish" class="hide px-6 py-2.5 rounded-lg bg-success text-white font-medium hover:bg-green-700 shadow-md shadow-green-500/20 transition-colors">
-                    Завершить экзамен <i class="fa-solid fa-check ml-2"></i>
+                <button onclick="finishExamPrompt()" id="btnFinish"
+                    class="hide col-span-2 py-3.5 rounded-xl bg-success text-white font-semibold hover:bg-green-700 active:bg-green-800 shadow-md shadow-green-500/20 transition-colors text-base">
+                    <i class="fa-solid fa-check mr-2"></i> Завершить экзамен
                 </button>
             </div>
         </main>
     </div>
 
     <!-- Экран 3: Результаты и отправка -->
-    <div id="screen-results" class="min-h-screen bg-gray-50 py-10 px-4 hide">
+    <div id="screen-results" class="min-h-screen-real bg-gray-50 py-10 px-4 hide">
         <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden fade-in relative">
             <div id="sendingOverlay" class="absolute inset-0 bg-white/90 z-20 flex flex-col items-center justify-center hide">
                 <div class="loader mb-4"></div>
@@ -621,7 +651,7 @@
         ];
 
         // --- ЛОГИКА ---
-        let db = []; 
+        let db = [];
         let currentQuestion = 0;
         let userAnswers = [];
         let studentName = "";
@@ -633,41 +663,62 @@
         let timerInterval;
 
         const screenIntro = document.getElementById('screen-intro');
-        const screenQuiz = document.getElementById('screen-quiz');
+        const screenQuiz  = document.getElementById('screen-quiz');
         const screenResults = document.getElementById('screen-results');
-        
-        document.addEventListener('copy', (e) => {
-            if(examActive) { e.preventDefault(); }
-        });
 
-        // Блокируем горячие клавиши DevTools и просмотра кода
+        // --- Определение iOS ---
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        const isStandalone = window.navigator.standalone === true; // добавлено на экран «Домой»
+
+        if (isIOS && !isStandalone) {
+            document.getElementById('ios-banner').classList.remove('hide');
+        }
+
+        // --- Anti-cheat ---
+        // Кулдаун: blur + visibilitychange не считаются дважды за одно событие
+        let cheatCooldown = false;
+        // Grace: игнорируем blur при входе в полноэкранный режим
+        let fullscreenGrace = false;
+        // Dialog: подтверждение завершения — не нарушение
+        let dialogOpen = false;
+        // Ориентация: поворот телефона — не нарушение
+        let orientationChanging = false;
+
+        // Блокируем копирование
+        document.addEventListener('copy', (e) => { if (examActive) e.preventDefault(); });
+
+        // Блокируем горячие клавиши DevTools (на десктопе)
         document.addEventListener('keydown', (e) => {
             if (!examActive) return;
-            const key = e.key.toUpperCase();
-            if (
-                e.key === 'F12' ||
-                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(key)) ||
-                (e.ctrlKey && ['U','S','P'].includes(key))
-            ) {
+            const k = e.key.toUpperCase();
+            if (e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(k)) ||
+                (e.ctrlKey && ['U','S','P'].includes(k))) {
                 e.preventDefault();
                 registerCheatAttempt();
             }
         });
 
-        // Кулдаун: предотвращает двойное срабатывание visibilitychange + blur
-        let cheatCooldown = false;
-        // Grace-период: игнорирует blur при входе в полноэкранный режим
-        let fullscreenGrace = false;
-        // Флаг диалога: confirm/alert уводят фокус, это не нарушение
-        let dialogOpen = false;
-
-        document.addEventListener("visibilitychange", () => {
-            if (document.hidden && examActive && !dialogOpen) registerCheatAttempt();
+        // Смена ориентации: даём 2 сек игнора
+        window.addEventListener('orientationchange', () => {
+            orientationChanging = true;
+            setTimeout(() => { orientationChanging = false; }, 2000);
         });
 
-        window.addEventListener("blur", () => {
-            if (examActive && !fullscreenGrace && !dialogOpen) registerCheatAttempt();
+        // Уход со страницы (переключение вкладки/приложения)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && examActive && !dialogOpen && !orientationChanging)
+                registerCheatAttempt();
         });
+
+        // Потеря фокуса (сворачивание браузера, уведомления — только не на iOS,
+        // т.к. там blur слишком чувствительный)
+        if (!isIOS) {
+            window.addEventListener('blur', () => {
+                if (examActive && !fullscreenGrace && !dialogOpen && !orientationChanging)
+                    registerCheatAttempt();
+            });
+        }
 
         function registerCheatAttempt() {
             if (cheatCooldown) return;
@@ -678,7 +729,7 @@
             document.getElementById('cheatModal').classList.remove('hide');
         }
 
-        // Обёртка confirm() без срабатывания античита
+        // confirm() без срабатывания античита
         function safeConfirm(msg) {
             dialogOpen = true;
             const result = confirm(msg);
@@ -692,49 +743,39 @@
         }
 
         function enterFullscreen() {
+            if (isIOS) return; // iOS Safari не поддерживает requestFullscreen
             fullscreenGrace = true;
             setTimeout(() => { fullscreenGrace = false; }, 2000);
             const elem = document.documentElement;
-            if (elem.requestFullscreen) { elem.requestFullscreen().catch(()=>{}); }
-            else if (elem.webkitRequestFullscreen) { elem.webkitRequestFullscreen().catch(()=>{}); }
+            if (elem.requestFullscreen) elem.requestFullscreen().catch(() => {});
+            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen().catch(() => {});
         }
 
         function updateTitle() {
             const grade = document.getElementById('studentGrade').value;
             const titleEl = document.getElementById('introTitle');
-            if(grade) titleEl.innerText = `Итоговый экзамен по Информатике - ${grade} класс`;
-            else titleEl.innerText = `Итоговый экзамен по Информатике`;
+            titleEl.innerText = grade
+                ? `Итоговый экзамен по Информатике — ${grade} класс`
+                : 'Итоговый экзамен по Информатике';
         }
 
         function generateUniqueVariant(gradeLevel) {
             let pools = gradeLevel === '6' ? topicPools6 : (gradeLevel === '7' ? topicPools7 : topicPools9);
             db = [];
-            
-            // Глубокая копия и перемешивание вопросов внутри каждой темы
+
             let poolCopy = pools.map(t => ({
                 topic: t.topic,
                 questions: [...t.questions].sort(() => 0.5 - Math.random())
             }));
-
-            // Перемешиваем сами темы
             poolCopy.sort(() => 0.5 - Math.random());
 
-            let qCount = 0;
-            let topicIndex = 0;
-
-            // Набираем ровно 20 вопросов, равномерно распределяя по темам
+            let qCount = 0, topicIndex = 0;
             while (qCount < 20 && poolCopy.length > 0) {
                 if (topicIndex >= poolCopy.length) topicIndex = 0;
-                
                 let topicObj = poolCopy[topicIndex];
                 if (topicObj.questions.length > 0) {
-                    let selectedQ = topicObj.questions.pop(); // Берем 1 случайный вопрос (уже перемешаны)
-                    db.push({
-                        topic: topicObj.topic,
-                        question: selectedQ.q,
-                        options: selectedQ.opts,
-                        correct: selectedQ.c
-                    });
+                    let selectedQ = topicObj.questions.pop();
+                    db.push({ topic: topicObj.topic, question: selectedQ.q, options: selectedQ.opts, correct: selectedQ.c });
                     qCount++;
                 } else {
                     poolCopy.splice(topicIndex, 1);
@@ -742,35 +783,33 @@
                 }
                 topicIndex++;
             }
-
-            // Перемешиваем итоговый билет из 20 вопросов
             db.sort(() => 0.5 - Math.random());
             userAnswers = new Array(db.length).fill(null);
         }
 
         function startExam() {
-            const nameInput = document.getElementById('studentName').value.trim();
-            const gradeInput = document.getElementById('studentGrade').value;
+            const nameInput   = document.getElementById('studentName').value.trim();
+            const gradeInput  = document.getElementById('studentGrade').value;
             const letterInput = document.getElementById('studentLetter').value;
-            
-            if (!nameInput) { alert("Введите Фамилию и Имя."); return; }
-            if (!gradeInput) { alert("Выберите Параллель (Класс)."); return; }
+
+            if (!nameInput)   { alert("Введите Фамилию и Имя."); return; }
+            if (!gradeInput)  { alert("Выберите Параллель (Класс)."); return; }
             if (!letterInput) { alert("Выберите Букву класса."); return; }
-            
-            studentName = nameInput;
+
+            studentName  = nameInput;
             selectedGrade = gradeInput;
             studentClass = `${gradeInput} «${letterInput}»`;
 
-            document.getElementById('displayStudentName').innerText = studentName;
+            document.getElementById('displayStudentName').innerText  = studentName;
             document.getElementById('displayStudentClass').innerText = studentClass;
-            
+
             generateUniqueVariant(selectedGrade);
             enterFullscreen();
 
             screenIntro.classList.add('hide');
             screenQuiz.classList.remove('hide');
             examActive = true;
-            
+
             startTimer();
             renderQuestion();
         }
@@ -779,51 +818,54 @@
             const timerDisplay = document.getElementById('timerDisplay');
             timerInterval = setInterval(() => {
                 timeRemaining--;
-                let m = Math.floor(timeRemaining / 60);
-                let s = timeRemaining % 60;
-                timerDisplay.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                
-                if(timeRemaining <= 300) timerDisplay.classList.add('text-danger', 'animate-pulse');
-                if (timeRemaining <= 0) { clearInterval(timerInterval); finishExam(); }
+                const m = Math.floor(timeRemaining / 60);
+                const s = timeRemaining % 60;
+                timerDisplay.innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+                if (timeRemaining <= 300) timerDisplay.classList.add('text-danger', 'animate-pulse');
+                if (timeRemaining <= 0)   { clearInterval(timerInterval); finishExam(); }
             }, 1000);
         }
 
         function renderQuestion() {
             const q = db[currentQuestion];
-            document.getElementById('questionTopic').innerText = q.topic;
+            document.getElementById('questionTopic').innerText   = q.topic;
             document.getElementById('questionCounter').innerText = `Вопрос ${currentQuestion + 1} из ${db.length}`;
-            document.getElementById('questionText').innerText = q.question;
-            
-            const optionsContainer = document.getElementById('optionsContainer');
-            optionsContainer.innerHTML = '';
+            document.getElementById('questionText').innerText    = q.question;
+
+            const container = document.getElementById('optionsContainer');
+            container.innerHTML = '';
 
             q.options.forEach((opt, index) => {
                 const isSelected = userAnswers[currentQuestion] === index;
                 const div = document.createElement('div');
-                div.className = `p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 flex items-center gap-3 ${isSelected ? 'border-primary bg-blue-50' : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'}`;
+                // option-card даёт min-height 56px и touch-action
+                div.className = `option-card p-4 border-2 rounded-xl flex items-center gap-3 transition-all duration-150
+                    ${isSelected
+                        ? 'border-primary bg-blue-50'
+                        : 'border-gray-200 active:border-blue-300 active:bg-gray-50'}`;
                 div.onclick = () => selectOption(index);
-                
-                const radioCircle = document.createElement('div');
-                radioCircle.className = `w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? 'border-primary' : 'border-gray-400'}`;
-                if(isSelected) radioCircle.innerHTML = '<div class="w-2.5 h-2.5 bg-primary rounded-full"></div>';
 
-                const textSpan = document.createElement('span');
-                textSpan.className = `text-lg ${isSelected ? 'font-medium text-primary' : 'text-gray-700'}`;
-                textSpan.innerText = opt;
+                const radio = document.createElement('div');
+                radio.className = `w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0
+                    ${isSelected ? 'border-primary' : 'border-gray-400'}`;
+                if (isSelected) radio.innerHTML = '<div class="w-2.5 h-2.5 bg-primary rounded-full"></div>';
 
-                div.appendChild(radioCircle); div.appendChild(textSpan);
-                optionsContainer.appendChild(div);
+                const text = document.createElement('span');
+                text.className = `text-base md:text-lg leading-snug ${isSelected ? 'font-medium text-primary' : 'text-gray-700'}`;
+                text.innerText = opt;
+
+                div.appendChild(radio);
+                div.appendChild(text);
+                container.appendChild(div);
             });
 
             document.getElementById('btnPrev').disabled = currentQuestion === 0;
-            if (currentQuestion === db.length - 1) {
-                document.getElementById('btnNext').classList.add('hide');
-                document.getElementById('btnFinish').classList.remove('hide');
-            } else {
-                document.getElementById('btnNext').classList.remove('hide');
-                document.getElementById('btnFinish').classList.add('hide');
-            }
-            document.getElementById('progressBar').style.width = `${((currentQuestion + 1) / db.length) * 100}%`;
+            const isLast = currentQuestion === db.length - 1;
+            document.getElementById('btnNext').classList.toggle('hide', isLast);
+            document.getElementById('btnFinish').classList.toggle('hide', !isLast);
+
+            document.getElementById('progressBar').style.width =
+                `${((currentQuestion + 1) / db.length) * 100}%`;
         }
 
         function selectOption(index) {
@@ -841,22 +883,20 @@
 
         function finishExamPrompt() {
             const unanswered = userAnswers.filter(a => a === null).length;
-            if (unanswered > 0) {
-                if(!safeConfirm(`У вас осталось ${unanswered} неотвеченных вопросов! Завершить?`)) return;
-            } else {
-                if(!safeConfirm("Вы уверены, что хотите завершить экзамен?")) return;
-            }
+            const msg = unanswered > 0
+                ? `У вас осталось ${unanswered} неотвеченных вопросов! Завершить?`
+                : "Вы уверены, что хотите завершить экзамен?";
+            if (!safeConfirm(msg)) return;
             finishExam();
         }
 
         function finishExam() {
             examActive = false;
             clearInterval(timerInterval);
-            if (document.exitFullscreen) { document.exitFullscreen().catch(()=>{}); }
+            if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
 
             screenQuiz.classList.add('hide');
             screenResults.classList.remove('hide');
-
             calculateResults();
         }
 
@@ -868,49 +908,48 @@
 
             db.forEach((q, index) => {
                 const userAnswer = userAnswers[index];
-                const isCorrect = userAnswer === q.correct;
+                const isCorrect  = userAnswer === q.correct;
                 if (isCorrect) score++;
 
                 const row = document.createElement('div');
                 row.className = 'flex justify-between items-center py-2 border-b border-gray-100 last:border-0';
-                
+
                 const topicTitle = document.createElement('span');
                 topicTitle.className = 'text-gray-700 text-sm';
                 topicTitle.innerText = `${index + 1}. ${q.topic}`;
 
-                const statusBadge = document.createElement('span');
-                if (isCorrect) statusBadge.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
-                else if (userAnswer === null) statusBadge.innerHTML = '<i class="fa-solid fa-minus text-gray-400" title="Нет ответа"></i>';
-                else statusBadge.innerHTML = '<i class="fa-solid fa-xmark text-danger"></i>';
+                const badge = document.createElement('span');
+                if (isCorrect)          badge.innerHTML = '<i class="fa-solid fa-check text-success"></i>';
+                else if (userAnswer === null) badge.innerHTML = '<i class="fa-solid fa-minus text-gray-400"></i>';
+                else                    badge.innerHTML = '<i class="fa-solid fa-xmark text-danger"></i>';
 
-                row.appendChild(topicTitle); row.appendChild(statusBadge);
+                row.appendChild(topicTitle);
+                row.appendChild(badge);
                 topicsContainer.appendChild(row);
             });
 
             document.getElementById('scoreDisplay').innerText = `${score}/${db.length}`;
-            let grade = "2 (Неуд)";
-            let gradeNum = 2;
-            let gradeClass = "bg-red-100 text-red-800";
-            let percent = Math.round((score / db.length) * 100);
-            
-            if (percent >= 85) { grade = "5 (Отл)"; gradeNum = 5; gradeClass = "bg-green-100 text-green-800"; }
-            else if (percent >= 70) { grade = "4 (Хор)"; gradeNum = 4; gradeClass = "bg-blue-100 text-blue-800"; }
-            else if (percent >= 50) { grade = "3 (Удовл)"; gradeNum = 3; gradeClass = "bg-yellow-100 text-yellow-800"; }
+            let grade = "2 (Неуд)", gradeNum = 2, gradeClass = "bg-red-100 text-red-800";
+            const percent = Math.round((score / db.length) * 100);
+
+            if      (percent >= 85) { grade = "5 (Отл)";    gradeNum = 5; gradeClass = "bg-green-100 text-green-800"; }
+            else if (percent >= 70) { grade = "4 (Хор)";    gradeNum = 4; gradeClass = "bg-blue-100 text-blue-800"; }
+            else if (percent >= 50) { grade = "3 (Удовл)";  gradeNum = 3; gradeClass = "bg-yellow-100 text-yellow-800"; }
 
             const gd = document.getElementById('gradeDisplay');
-            gd.innerText = grade;
-            gd.className = `text-sm font-medium px-3 py-1 rounded-full inline-block ${gradeClass}`;
+            gd.innerText   = grade;
+            gd.className   = `text-sm font-medium px-3 py-1 rounded-full inline-block ${gradeClass}`;
 
             document.getElementById('cheatCountDisplay').innerText = cheatWarnings;
-            if(cheatWarnings > 0) {
+            if (cheatWarnings > 0) {
                 document.getElementById('cheatResultBox').classList.add('bg-red-50', 'border-red-200');
                 document.getElementById('cheatCountDisplay').classList.add('text-danger');
             }
 
-            const timeSpent = (45 * 60) - timeRemaining;
-            const minutesSpent = Math.floor(timeSpent / 60) + " мин " + (timeSpent % 60) + " сек";
+            const timeSpent    = (45 * 60) - timeRemaining;
+            const minutesSpent = `${Math.floor(timeSpent / 60)} мин ${timeSpent % 60} сек`;
 
-            // btoa() не поддерживает кириллицу → кодируем всё через encodeURIComponent
+            // btoa не поддерживает кириллицу → двойная кодировка
             const secretData = `${encodeURIComponent(studentName)}|${selectedGrade}|${encodeURIComponent(studentClass)}|${score}|${gradeNum}|${cheatWarnings}`;
             document.getElementById('verificationCode').value = btoa(unescape(encodeURIComponent(secretData)));
 
@@ -923,19 +962,17 @@
                 mark: gradeNum,
                 cheats: cheatWarnings,
                 time: minutesSpent,
-                timestamp: new Date().toLocaleString('ru-RU', {timeZone: 'Asia/Bishkek'})
+                timestamp: new Date().toLocaleString('ru-RU', { timeZone: 'Asia/Bishkek' })
             });
         }
 
         function sendToGoogleSheets(data) {
             const targetURL = URLS[selectedGrade];
-            if(!targetURL) {
-                alert("Ошибка: Не найден URL для отправки данных этого класса.");
-                return;
-            }
-            
+            if (!targetURL) { alert("Ошибка: не найден URL для отправки."); return; }
+
             document.getElementById('sendingOverlay').classList.remove('hide');
 
+            // mode: no-cors обязателен — GAS делает редирект, иначе CORS-ошибка
             fetch(targetURL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -946,22 +983,33 @@
                 document.getElementById('sendingOverlay').classList.add('hide');
                 document.getElementById('successOverlay').classList.remove('hide');
             })
-            .catch((error) => {
-                console.error('Ошибка отправки:', error);
+            .catch(() => {
                 document.getElementById('sendingOverlay').classList.add('hide');
-                alert("Ошибка сети при отправке. Пожалуйста, скопируйте резервный код и передайте учителю.");
+                alert("Ошибка сети. Скопируйте резервный код и передайте учителю.");
             });
         }
 
         function copyVerCode() {
+            const val = document.getElementById('verificationCode').value;
+            const btn = event.currentTarget;
+            const ok  = () => {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
+                setTimeout(() => { btn.innerHTML = orig; }, 2000);
+            };
+            // Современный API (работает на iOS 13.4+, Android Chrome)
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(val).then(ok).catch(() => legacyCopy(val, ok));
+            } else {
+                legacyCopy(val, ok);
+            }
+        }
+
+        function legacyCopy(text, callback) {
             const input = document.getElementById('verificationCode');
             input.select();
-            input.setSelectionRange(0, 99999); 
-            document.execCommand("copy");
-            const btn = event.currentTarget;
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-check text-green-400"></i>';
-            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+            input.setSelectionRange(0, 99999);
+            try { document.execCommand('copy'); callback(); } catch(e) {}
         }
     </script>
 </body>
