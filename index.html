@@ -637,20 +637,36 @@
         const screenResults = document.getElementById('screen-results');
         
         document.addEventListener('copy', (e) => {
-            if(examActive) { e.preventDefault(); alert("Копирование отключено."); }
+            if(examActive) { e.preventDefault(); }
         });
 
-        // Кулдаун — предотвращает двойное срабатывание blur + visibilitychange
+        // Блокируем горячие клавиши DevTools и просмотра кода
+        document.addEventListener('keydown', (e) => {
+            if (!examActive) return;
+            const key = e.key.toUpperCase();
+            if (
+                e.key === 'F12' ||
+                (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(key)) ||
+                (e.ctrlKey && ['U','S','P'].includes(key))
+            ) {
+                e.preventDefault();
+                registerCheatAttempt();
+            }
+        });
+
+        // Кулдаун: предотвращает двойное срабатывание visibilitychange + blur
         let cheatCooldown = false;
-        // Grace-период — игнорирует blur при переходе в полноэкранный режим
+        // Grace-период: игнорирует blur при входе в полноэкранный режим
         let fullscreenGrace = false;
+        // Флаг диалога: confirm/alert уводят фокус, это не нарушение
+        let dialogOpen = false;
 
         document.addEventListener("visibilitychange", () => {
-            if (document.hidden && examActive) registerCheatAttempt();
+            if (document.hidden && examActive && !dialogOpen) registerCheatAttempt();
         });
-        
+
         window.addEventListener("blur", () => {
-            if (examActive && !fullscreenGrace) registerCheatAttempt();
+            if (examActive && !fullscreenGrace && !dialogOpen) registerCheatAttempt();
         });
 
         function registerCheatAttempt() {
@@ -660,6 +676,14 @@
             cheatWarnings++;
             document.getElementById('cheatWarningBanner').classList.remove('hidden');
             document.getElementById('cheatModal').classList.remove('hide');
+        }
+
+        // Обёртка confirm() без срабатывания античита
+        function safeConfirm(msg) {
+            dialogOpen = true;
+            const result = confirm(msg);
+            setTimeout(() => { dialogOpen = false; }, 500);
+            return result;
         }
 
         function closeCheatModal() {
@@ -818,9 +842,9 @@
         function finishExamPrompt() {
             const unanswered = userAnswers.filter(a => a === null).length;
             if (unanswered > 0) {
-                if(!confirm(`У вас осталось ${unanswered} неотвеченных вопросов! Завершить?`)) return;
+                if(!safeConfirm(`У вас осталось ${unanswered} неотвеченных вопросов! Завершить?`)) return;
             } else {
-                if(!confirm("Вы уверены, что хотите завершить экзамен?")) return;
+                if(!safeConfirm("Вы уверены, что хотите завершить экзамен?")) return;
             }
             finishExam();
         }
@@ -886,9 +910,9 @@
             const timeSpent = (45 * 60) - timeRemaining;
             const minutesSpent = Math.floor(timeSpent / 60) + " мин " + (timeSpent % 60) + " сек";
 
-            // Резервный код (включает теперь параллель и класс)
-            const secretData = `${encodeURIComponent(studentName)}|${selectedGrade}|${studentClass}|${score}|${gradeNum}|${cheatWarnings}`;
-            document.getElementById('verificationCode').value = btoa(secretData);
+            // btoa() не поддерживает кириллицу → кодируем всё через encodeURIComponent
+            const secretData = `${encodeURIComponent(studentName)}|${selectedGrade}|${encodeURIComponent(studentClass)}|${score}|${gradeNum}|${cheatWarnings}`;
+            document.getElementById('verificationCode').value = btoa(unescape(encodeURIComponent(secretData)));
 
             sendToGoogleSheets({
                 name: studentName,
@@ -912,9 +936,6 @@
             
             document.getElementById('sendingOverlay').classList.remove('hide');
 
-            // mode: 'no-cors' обязателен для Google Apps Script —
-            // GAS делает редирект, который браузер иначе блокирует (CORS-ошибка).
-            // Ответ будет "opaque", но данные гарантированно уходят на сервер.
             fetch(targetURL, {
                 method: 'POST',
                 mode: 'no-cors',
